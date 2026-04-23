@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "User" ADD COLUMN     "createdEvents" INTEGER[] DEFAULT ARRAY[]::INTEGER[],
+ADD COLUMN     "sharedMeals" INTEGER[] DEFAULT ARRAY[]::INTEGER[];

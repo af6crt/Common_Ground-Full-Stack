@@ -1,0 +1,493 @@
+openapi: 3.0.3
+info:
+  title: Common Ground API
+  description: |
+    API for a neighbourhood community platform connecting people through clubs, events, and meals.
+    Built as part of **COM5409 — Web Design & Programming**.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:3005/api
+    description: Local development server
+
+tags:
+  - name: Auth
+    description: User authentication (signup, signin)
+  - name: Clubs
+    description: Community clubs and groups
+  - name: Events
+    description: Local events
+  - name: Meals
+    description: Food sharing network
+  - name: Users
+    description: User profile management
+
+paths:
+  # ============ AUTH ============
+  /auth/signup:
+    post:
+      tags: [Auth]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+                - fullName
+              properties:
+                email:
+                  type: string
+                  example: "user@example.com"
+                password:
+                  type: string
+                  example: "password123"
+                fullName:
+                  type: string
+                  example: "John Doe"
+                ageGroup:
+                  type: string
+                  example: "Adult (40-60)"
+                interests:
+                  type: array
+                  items:
+                    type: string
+                  example: ["Books", "Walking", "Gardening"]
+      responses:
+        "200":
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                  user:
+                    $ref: "#/components/schemas/User"
+        "400":
+          description: Missing fields or email exists
+
+  /auth/signin:
+    post:
+      tags: [Auth]
+      summary: Login user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  example: "user@example.com"
+                password:
+                  type: string
+                  example: "password123"
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                  user:
+                    $ref: "#/components/schemas/User"
+        "401":
+          description: Invalid credentials
+
+  # ============ CLUBS ============
+  /clubs:
+    get:
+      tags: [Clubs]
+      summary: Get all clubs
+      description: Returns all 15 community clubs
+      responses:
+        "200":
+          description: List of clubs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Club"
+
+  /clubs/{id}/join:
+    post:
+      tags: [Clubs]
+      summary: Join a club
+      description: Add the authenticated user to a club
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Club ID
+      responses:
+        "200":
+          description: Joined successfully
+        "401":
+          description: Unauthorized
+        "404":
+          description: Club not found
+
+  # ============ EVENTS ============
+  /events:
+    get:
+      tags: [Events]
+      summary: Get all events
+      description: Returns all 20 community events
+      responses:
+        "200":
+          description: List of events
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Event"
+
+    post:
+      tags: [Events]
+      summary: Create a new event
+      description: Add a new event to the community calendar
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - club
+                - title
+                - date
+                - location
+              properties:
+                club:
+                  type: string
+                  example: "Book Club"
+                title:
+                  type: string
+                  example: "Monthly Book Meeting"
+                date:
+                  type: string
+                  example: "Thursday, 7pm"
+                location:
+                  type: string
+                  example: "Community Centre"
+                description:
+                  type: string
+                  example: "Discuss this month's book"
+      responses:
+        "200":
+          description: Event created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Event"
+        "401":
+          description: Unauthorized
+
+  /events/{id}/attend:
+    post:
+      tags: [Events]
+      summary: Attend an event
+      description: Mark the authenticated user as attending an event
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Event ID
+      responses:
+        "200":
+          description: Attended successfully
+        "401":
+          description: Unauthorized
+
+  # ============ MEALS ============
+  /meals:
+    get:
+      tags: [Meals]
+      summary: Get all meals
+      description: Returns all 25 home-cooked meals available
+      responses:
+        "200":
+          description: List of meals
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Meal"
+
+    post:
+      tags: [Meals]
+      summary: Share a meal
+      description: Add a new meal to share with neighbours
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - cook
+                - meal
+                - dietary
+                - portions
+                - pickupTime
+                - location
+              properties:
+                cook:
+                  type: string
+                  example: "Maria Rossi"
+                meal:
+                  type: string
+                  example: "Classic Lasagne"
+                dietary:
+                  type: string
+                  enum: [Halal, Vegetarian, Vegan, Healthy]
+                  example: "Vegetarian"
+                portions:
+                  type: integer
+                  example: 4
+                pickupTime:
+                  type: string
+                  example: "6:00 PM"
+                location:
+                  type: string
+                  example: "Community Centre"
+      responses:
+        "200":
+          description: Meal shared
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Meal"
+        "401":
+          description: Unauthorized
+
+  /meals/{id}/request:
+    post:
+      tags: [Meals]
+      summary: Request a meal
+      description: Request a home-cooked meal from a neighbour
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Meal ID
+      responses:
+        "200":
+          description: Requested successfully
+        "401":
+          description: Unauthorized
+
+  # ============ USERS ============
+  /users/me:
+    get:
+      tags: [Users]
+      summary: Get current user profile
+      description: Returns the authenticated user's profile information
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Unauthorized
+
+    put:
+      tags: [Users]
+      summary: Update user profile
+      description: Update the authenticated user's profile information
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                fullName:
+                  type: string
+                phone:
+                  type: string
+                ageGroup:
+                  type: string
+                interests:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        "200":
+          description: Profile updated
+        "401":
+          description: Unauthorized
+
+  /health:
+    get:
+      tags: [System]
+      summary: Health check
+      description: Check if API is running
+      responses:
+        "200":
+          description: API is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+                  message:
+                    type: string
+                    example: Common Ground API is running!
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        email:
+          type: string
+          example: "user@example.com"
+        fullName:
+          type: string
+          example: "John Doe"
+        phone:
+          type: string
+          example: "07700 900123"
+        ageGroup:
+          type: string
+          example: "Adult (40-60)"
+        interests:
+          type: array
+          items:
+            type: string
+          example: ["Books", "Walking", "Gardening"]
+        joinedEvents:
+          type: array
+          items:
+            type: integer
+        requestedMeals:
+          type: array
+          items:
+            type: integer
+        joinedClubs:
+          type: array
+          items:
+            type: integer
+
+    Club:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: "Book Club"
+        icon:
+          type: string
+          example: "📚"
+        description:
+          type: string
+          example: "Monthly book discussions over tea and biscuits."
+        members:
+          type: integer
+          example: 24
+        tag:
+          type: string
+          example: "Reading"
+
+    Event:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        club:
+          type: string
+          example: "History Club"
+        title:
+          type: string
+          example: "Local Heritage Walk"
+        date:
+          type: string
+          example: "Saturday, 10am"
+        location:
+          type: string
+          example: "Old Library"
+        attendees:
+          type: integer
+          example: 14
+        description:
+          type: string
+          example: "Guided walk through neighbourhood history."
+
+    Meal:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        cook:
+          type: string
+          example: "Maria Rossi"
+        meal:
+          type: string
+          example: "Classic Lasagne"
+        dietary:
+          type: string
+          enum: [Halal, Vegetarian, Vegan, Healthy]
+          example: "Vegetarian"
+        portions:
+          type: integer
+          example: 4
+        pickupTime:
+          type: string
+          example: "6:00 PM"
+        location:
+          type: string
+          example: "Community Centre"

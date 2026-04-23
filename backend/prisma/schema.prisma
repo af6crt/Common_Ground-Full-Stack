@@ -1,0 +1,58 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             Int      @id @default(autoincrement())
+  email          String   @unique
+  password       String
+  fullName       String
+  phone          String?
+  ageGroup       String?
+  interests      String[]
+  postcode       String?
+  joinDate       DateTime @default(now())
+  joinedEvents   Int[]    @default([])
+  requestedMeals Int[]    @default([])
+  joinedClubs    Int[]    @default([])
+  createdEvents  Int[]    @default([])   // ✅ ADD THIS
+  sharedMeals    Int[]    @default([])   // ✅ ADD THIS
+}
+
+model Event {
+  id          Int      @id @default(autoincrement())
+  club        String
+  title       String
+  date        String
+  location    String
+  attendees   Int      @default(0)
+  description String
+  postcode    String?
+  createdAt   DateTime @default(now())
+}
+
+model Meal {
+  id          Int      @id @default(autoincrement())
+  cook        String
+  meal        String
+  dietary     String
+  portions    Int
+  pickupTime  String
+  location    String
+  postcode    String?
+  createdAt   DateTime @default(now())
+}
+
+model Club {
+  id          Int      @id @default(autoincrement())
+  name        String
+  icon        String
+  description String
+  members     Int      @default(0)
+  tag         String
+}

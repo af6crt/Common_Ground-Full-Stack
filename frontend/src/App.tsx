@@ -47,7 +47,7 @@ interface User {
 }
 
 // ============ API CONFIGURATION ============
-const API_BASE = 'http://localhost:3005/api';
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3005/api';
 
 function getToken(): string | null {
     return localStorage.getItem('token');
